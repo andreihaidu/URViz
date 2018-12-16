@@ -53,8 +53,8 @@ TSharedRef< FSlateStyleSet > FRVEdStyle::Create()
 	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet(GetStyleSetName()));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin(TEXT("URViz"))->GetContentDir());
 
-	Style->Set("LevelEditor.RVizEd", new IMAGE_BRUSH(TEXT("Icons/icon_Mode_RViz_40px"), Icon40x40));
-	Style->Set("LevelEditor.RVizEd.Small", new IMAGE_BRUSH(TEXT("Icons/icon_Mode_RViz_40px"), Icon20x20));
+	Style->Set("LevelEditor.RVizEd", new IMAGE_BRUSH(TEXT("Icons/RobCoG_RViz_Mode_40px"), Icon40x40));
+	Style->Set("LevelEditor.RVizEd.Small", new IMAGE_BRUSH(TEXT("Icons/RobCoG_RViz_Mode_40px"), Icon20x20));
 
 	return Style;
 }
