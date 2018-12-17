@@ -43,7 +43,7 @@ FName FRVEdStyle::GetStyleSetName()
 	return StyleName;
 }
 
-#define IMAGE_BRUSH(RelativePath, ...) FSlateImageBrush(Style->RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__)
+#define IMAGE_BRUSH_RV(RelativePath, ...) FSlateImageBrush(Style->RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__)
 // Returns a new style
 TSharedRef< FSlateStyleSet > FRVEdStyle::Create()
 {
@@ -53,12 +53,12 @@ TSharedRef< FSlateStyleSet > FRVEdStyle::Create()
 	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet(GetStyleSetName()));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin(TEXT("URViz"))->GetContentDir());
 
-	Style->Set("LevelEditor.RVizEd", new IMAGE_BRUSH(TEXT("Icons/RobCoG_RViz_Mode_40px"), Icon40x40));
-	Style->Set("LevelEditor.RVizEd.Small", new IMAGE_BRUSH(TEXT("Icons/RobCoG_RViz_Mode_40px"), Icon20x20));
+	Style->Set("LevelEditor.RVizEd", new IMAGE_BRUSH_RV(TEXT("Icons/RobCoG_RViz_Mode_40px"), Icon40x40));
+	Style->Set("LevelEditor.RVizEd.Small", new IMAGE_BRUSH_RV(TEXT("Icons/RobCoG_RViz_Mode_40px"), Icon20x20));
 
 	return Style;
 }
-#undef IMAGE_BRUSH
+#undef IMAGE_BRUSH_RV
 
 // Reloads all texture resources from disk
 void FRVEdStyle::ReloadTextures()

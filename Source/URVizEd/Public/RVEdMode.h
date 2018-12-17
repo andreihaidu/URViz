@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RVEdTool.h"
 #include "EdMode.h"
 
 class FRVEdMode : public FEdMode
@@ -11,8 +12,14 @@ class FRVEdMode : public FEdMode
 public:
 	const static FEditorModeID EM_RVEdModeId;
 public:
+	// Ctor
 	FRVEdMode();
+
+	// Dtor
 	virtual ~FRVEdMode();
+
+	/** FGCObject interface */
+	void AddReferencedObjects(FReferenceCollector& Collector) override;
 
 	// FEdMode interface
 	virtual void Enter() override;
@@ -22,4 +29,8 @@ public:
 	//virtual void ActorSelectionChangeNotify() override;
 	bool UsesToolkits() const override;
 	// End of FEdMode interface
+
+public:
+	// Tool
+	URVEdTool* UISettings;	
 };

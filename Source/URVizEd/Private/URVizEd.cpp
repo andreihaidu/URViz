@@ -18,7 +18,8 @@ void FURVizEd::StartupModule()
 
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	FEditorModeRegistry::Get().RegisterMode<FRVEdMode>(
-		FRVEdMode::EM_RVEdModeId, LOCTEXT("RVizEdModeName", "RViz"),
+		FRVEdMode::EM_RVEdModeId,
+		LOCTEXT("RVizEdModeName", "RViz"),
 		FSlateIcon("LevelEditor.RVizEd", "LevelEditor.RVizEd.Small"),
 		true);
 }
@@ -31,5 +32,5 @@ void FURVizEd::ShutdownModule()
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FURVizEd, URViz)

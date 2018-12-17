@@ -8,14 +8,25 @@
 
 const FEditorModeID FRVEdMode::EM_RVEdModeId = TEXT("EM_RVEdMode");
 
+// Ctor
 FRVEdMode::FRVEdMode()
+{
+	UISettings = NewObject<URVEdTool>(GetTransientPackage(), TEXT("NewUISettings"), RF_Transactional);
+	UISettings->SetParent(this);
+}
+
+// Dtor
+FRVEdMode::~FRVEdMode()
 {
 
 }
 
-FRVEdMode::~FRVEdMode()
+void FRVEdMode::AddReferencedObjects(FReferenceCollector& Collector)
 {
+	// Call parent implementation
+	FEdMode::AddReferencedObjects(Collector);
 
+	Collector.AddReferencedObject(UISettings);
 }
 
 void FRVEdMode::Enter()
