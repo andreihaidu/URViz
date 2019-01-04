@@ -27,6 +27,7 @@ public class URVizEd : ModuleRules
 			new string[]
 			{
 				"Core",
+				"UROSBridge",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

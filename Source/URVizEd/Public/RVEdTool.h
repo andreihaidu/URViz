@@ -4,43 +4,54 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/ObjectMacros.h"
-#include "UObject/Object.h"
-#include "RVEdMode.h"
+#include "UObject/NoExportTypes.h"
+#include "ROSBridgeHandler.h"
 #include "RVEdTool.generated.h"
 
+/**
+ *
+ */
 UCLASS()
-class URVEdTool : public UObject
+class URVIZED_API URVEdTool : public UObject
 {
-	GENERATED_UCLASS_BODY()	
+	GENERATED_BODY()	
 
 public:
-	// Ctor
-	URVEdTool();
-
 	// Set parent mode
-	void SetParent(FRVEdMode* InParent);
+	void SetParent(class FRVEdMode* InParent);
 
 private:
+	// Create ROSBridge and connect to ROS
+	UFUNCTION(Exec, Category = "ROS")
+	void Connect();
+
+	// Disconnect from ROS
+	UFUNCTION(Exec, Category = "ROS")
+	void Disconnect();
+
 	// Callback on connection
 	void ConnectedCb();
 
 	// Callback when disconnected
-	void DisconnectedCb();
+	void ErrorCb();
 
 private:
-	UPROPERTY(EditAnywhere, Category = "ROS")
+	// ROS master ip
+	UPROPERTY(EditAnywhere, Category = "ROS", meta = (editcondition = "bCanEdit"))
 	FString ServerAdress = TEXT("127.0.0.1");
 
-	UPROPERTY(EditAnywhere, Category = "ROS", meta = (DisplayName = "ROS"))
+	// ROS bridge connection port
+	UPROPERTY(EditAnywhere, Category = "ROS", meta = (editcondition = "bCanEdit"))
 	uint32 ServerPort = 9090;
 
-	UPROPERTY(EditAnywhere, Category = "ROS")
+	// Namespace under which the callbacks are registered
+	UPROPERTY(EditAnywhere, Category = "ROS", meta = (editcondition = "bCanEdit"))
 	FString Namespace = TEXT("unreal");
 
+	// ROS connection status
 	UPROPERTY(VisibleInstanceOnly, Category = "ROS")
-	FString ConnectionStatus = TEXT("Not connected.");
+	FString ConnectionStatus = TEXT("null");
 
-	// Pointer to parent mode
-	FRVEdMode* ParentMode;
+	// ROS Bridge Handler
+	TSharedPtr<FROSBridgeHandler> ROSBridgeHandler;
 };

@@ -3,22 +3,21 @@
 
 #include "RVEdMode.h"
 #include "RVEdModeToolkit.h"
+#include "RVEdTool.h"
 #include "Toolkits/ToolkitManager.h"
 #include "EditorModeManager.h"
 
-const FEditorModeID FRVEdMode::EM_RVEdModeId = TEXT("EM_RVEdMode");
+const FEditorModeID FRVEdMode::EM_RVizEditorMode = TEXT("EM_RVizEditorMode");
 
 // Ctor
 FRVEdMode::FRVEdMode()
 {
-	UISettings = NewObject<URVEdTool>(GetTransientPackage(), TEXT("NewUISettings"), RF_Transactional);
-	UISettings->SetParent(this);
+	RVizEditorTool = NewObject<URVEdTool>(GetTransientPackage(), TEXT("RVizEditorTool"), RF_Transactional);
 }
 
 // Dtor
 FRVEdMode::~FRVEdMode()
 {
-
 }
 
 void FRVEdMode::AddReferencedObjects(FReferenceCollector& Collector)
@@ -26,7 +25,7 @@ void FRVEdMode::AddReferencedObjects(FReferenceCollector& Collector)
 	// Call parent implementation
 	FEdMode::AddReferencedObjects(Collector);
 
-	Collector.AddReferencedObject(UISettings);
+	Collector.AddReferencedObject(RVizEditorTool);
 }
 
 void FRVEdMode::Enter()
@@ -56,7 +55,3 @@ bool FRVEdMode::UsesToolkits() const
 {
 	return true;
 }
-
-
-
-

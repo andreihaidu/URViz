@@ -4,13 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RVEdTool.h"
 #include "EdMode.h"
 
 class FRVEdMode : public FEdMode
 {
 public:
-	const static FEditorModeID EM_RVEdModeId;
+	const static FEditorModeID EM_RVizEditorMode;
 public:
 	// Ctor
 	FRVEdMode();
@@ -31,6 +30,6 @@ public:
 	// End of FEdMode interface
 
 public:
-	// Tool
-	URVEdTool* UISettings;	
+	// public so it can be accessed by the toolkit to refresh
+	class URVEdTool* RVizEditorTool;
 };

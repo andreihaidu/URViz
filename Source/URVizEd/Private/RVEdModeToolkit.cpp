@@ -8,102 +8,33 @@
 #include "Widgets/Text/STextBlock.h"
 #include "EditorModeManager.h"
 
+
+#include "PropertyEditorModule.h"
+#include "SlateOptMacros.h"
+
+#include "IDetailsView.h"
+#include "IIntroTutorials.h"
+
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Text/STextBlock.h"
+#include "EditorModeManager.h"
+
+#include "RVEdToolCustomization.h"
+
 #define LOCTEXT_NAMESPACE "FRVEdModeToolkit"
 
+// Ctor
 FRVEdModeToolkit::FRVEdModeToolkit()
 {
 }
 
+// Initializes the mode toolkit
 void FRVEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHost)
 {
-	struct Locals
-	{
-		static bool IsWidgetEnabled()
-		{
-			return GEditor->GetSelectedActors()->Num() != 0;
-		}
+	FRVEdMode* RVizEdMode = GetEditorMode();
+	
+	RVizToolsWidget = SNew(SRVEdWidget, SharedThis(this));
 
-		static FReply OnButtonClick(FVector InOffset)
-		{
-			USelection* SelectedActors = GEditor->GetSelectedActors();
-
-			// Let editor know that we're about to do something that we want to undo/redo
-			GEditor->BeginTransaction(LOCTEXT("MoveActorsTransactionName", "MoveActors"));
-
-			// For each selected actor
-			for (FSelectionIterator Iter(*SelectedActors); Iter; ++Iter)
-			{
-				if (AActor* LevelActor = Cast<AActor>(*Iter))
-				{
-					// Register actor in opened transaction (undo/redo)
-					LevelActor->Modify();
-					// Move actor to given location
-					LevelActor->TeleportTo(LevelActor->GetActorLocation() + InOffset, FRotator(0, 0, 0));
-				}
-			}
-
-			// We're done moving actors so close transaction
-			GEditor->EndTransaction();
-
-			return FReply::Handled();
-		}
-
-		static TSharedRef<SWidget> MakeButton(FText InLabel, const FVector InOffset)
-		{
-			return SNew(SButton)
-				.Text(InLabel)
-				.OnClicked_Static(&Locals::OnButtonClick, InOffset);
-		}
-	};
-
-	const float Factor = 256.0f;
-
-	SAssignNew(ToolkitWidget, SBorder)
-		.HAlign(HAlign_Center)
-		.Padding(25)
-		.IsEnabled_Static(&Locals::IsWidgetEnabled)
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.HAlign(HAlign_Center)
-			.Padding(50)
-			[
-				SNew(STextBlock)
-				.AutoWrapText(true)
-				.Text(LOCTEXT("HelperLabel", "Select some actors and move them around using buttons below"))
-			]
-			+ SVerticalBox::Slot()
-				.HAlign(HAlign_Center)
-				.AutoHeight()
-				[
-					Locals::MakeButton(LOCTEXT("UpButtonLabel", "Up"), FVector(0, 0, Factor))
-				]
-			+ SVerticalBox::Slot()
-				.HAlign(HAlign_Center)
-				.AutoHeight()
-				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					[
-						Locals::MakeButton(LOCTEXT("LeftButtonLabel", "Left"), FVector(0, -Factor, 0))
-					]
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						[
-							Locals::MakeButton(LOCTEXT("RightButtonLabel", "Right"), FVector(0, Factor, 0))
-						]
-				]
-			+ SVerticalBox::Slot()
-				.HAlign(HAlign_Center)
-				.AutoHeight()
-				[
-					Locals::MakeButton(LOCTEXT("DownButtonLabel", "Down"), FVector(0, 0, -Factor))
-				]
-
-		];
-		
 	FModeToolkit::Init(InitToolkitHost);
 }
 
@@ -114,12 +45,94 @@ FName FRVEdModeToolkit::GetToolkitFName() const
 
 FText FRVEdModeToolkit::GetBaseToolkitName() const
 {
-	return NSLOCTEXT("RVEdModeToolkit", "DisplayName", "RVEdMode Tool");
+	return NSLOCTEXT("RVEdModeToolkit", "DisplayName", "RViz Mode");
 }
 
-class FEdMode* FRVEdModeToolkit::GetEditorMode() const
+class FRVEdMode* FRVEdModeToolkit::GetEditorMode() const
 {
-	return GLevelEditorModeTools().GetActiveMode(FRVEdMode::EM_RVEdModeId);
+	return (FRVEdMode*) GLevelEditorModeTools().GetActiveMode(FRVEdMode::EM_RVizEditorMode);
 }
 
+TSharedPtr<class SWidget> FRVEdModeToolkit::GetInlineContent() const 
+{
+	return RVizToolsWidget; 
+}
+
+/////////////////////////////////////////////////////////////////////////
+BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
+// Construct a SWidget based on initial parameters.
+void SRVEdWidget::Construct(const FArguments& InArgs, TSharedRef<FRVEdModeToolkit> InParentToolkit)
+{
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	PropertyEditorModule.RegisterCustomClassLayout(URVEdTool::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(
+		&FRVEdToolCustomization::MakeInstance));
+	PropertyEditorModule.NotifyCustomizationModuleChanged();
+
+	FDetailsViewArgs DetailsViewArgs(false, false, false, FDetailsViewArgs::HideNameArea);
+
+	DetailsPanel = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
+	DetailsPanel->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateSP(this, &SRVEdWidget::GetIsPropertyVisible));
+
+	FRVEdMode* RVizEditorMode = GetEditorMode();
+
+	if (RVizEditorMode)
+	{
+		// Refresh details panel
+		DetailsPanel->SetObject(RVizEditorMode->RVizEditorTool);
+	}
+
+	ChildSlot
+	[
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.Padding(0)
+		[
+			SNew(SVerticalBox)
+			.IsEnabled(this, &SRVEdWidget::GetRVizEditorIsEnabled)
+			+ SVerticalBox::Slot()
+			.Padding(0)
+			[
+				DetailsPanel.ToSharedRef()
+			]
+		]
+	];
+}
+END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
+FRVEdMode* SRVEdWidget::GetEditorMode() const
+{
+	return (FRVEdMode*)GLevelEditorModeTools().GetActiveMode(FRVEdMode::EM_RVizEditorMode);
+}
+
+FText SRVEdWidget::GetErrorText() const
+{
+	FRVEdMode* RVizEdMode = GetEditorMode();
+	return FText::GetEmpty();
+}
+
+bool SRVEdWidget::GetRVizEditorIsEnabled() const
+{
+	FRVEdMode* RVizEdMode = GetEditorMode();
+	if (RVizEdMode)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool SRVEdWidget::GetIsPropertyVisible(const FPropertyAndParent& PropertyAndParent) const
+{
+	return true;
+}
+
+void SRVEdWidget::RefreshDetailPanel()
+{
+	FRVEdMode* RVizEdMode = GetEditorMode();
+	if (RVizEdMode)
+	{
+		// Refresh details panel
+		DetailsPanel->SetObject(RVizEdMode->RVizEditorTool, true);
+	}
+}
 #undef LOCTEXT_NAMESPACE
